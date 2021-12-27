@@ -1,9 +1,6 @@
-// use crate::error_rc::*;
-use crate::error_dc::*;
+use stable_eyre::eyre::*;
 use structopt::StructOpt;
 
-mod error_rc;
-mod error_dc;
 
 #[derive(StructOpt)]
 struct Opt {
@@ -11,10 +8,19 @@ struct Opt {
     val: String,
 }
 
+fn parse_val(s: &String) -> Result<f64> {
+    let v : f64 = s.parse()?;
+    Ok(v)
+}
+
 fn main() -> Result<()> {
+    // Backtrace needs install() and "export RUST_BACKTRACE=1" in compile shell.
+    stable_eyre::install()?; 
+
     let opts = Opt::from_args();
-    let v : f64 = opts.val.parse()?;
-    println!("{:#?}", v);
-    general_error("just some error") 
+    let v = parse_val(&opts.val)
+                .with_context(|| format!("Could not parse --val argument as float : {}", opts.val))?;
+    println!("Successfully parsed: opts.val = {} as {}", opts.val, v);
+    Err(eyre!("But now we have an error anyway.") )
 
 }
